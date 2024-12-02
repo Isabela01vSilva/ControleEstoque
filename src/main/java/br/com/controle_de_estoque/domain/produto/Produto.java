@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.web.server.ResponseStatusException;
 
 @Table(name = "produtos")
 @Entity(name = "Produto")
@@ -44,4 +46,9 @@ public class Produto {
         }
     }
 
+    public void temEstoque(Integer qtd){
+        if (this.qtdDisponivelDoProduto < qtd){
+            throw new ResponseStatusException(HttpStatusCode.valueOf(400), "Não tem estoque, " + this.nome);
+        }
+    }
 }

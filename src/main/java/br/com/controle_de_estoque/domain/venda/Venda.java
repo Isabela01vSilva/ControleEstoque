@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Entity
 @Table(name = "vendas")
-@Entity(name = "Venda")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,7 +20,9 @@ public class Venda {
     private Long id;
 
     private Double valorDaVenda;
-    private Integer qtdVendida;
-    private String listarProdutos;
+
+    public Venda(Double valorDaVenda) {
+        this.valorDaVenda = valorDaVenda;
+    }
 
 }
