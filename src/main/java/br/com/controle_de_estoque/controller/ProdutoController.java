@@ -27,9 +27,8 @@ public class ProdutoController {
     }
 
     @GetMapping("/{id}")
-    @Transactional
     public ResponseEntity buscarProdutoPorId(@PathVariable Long id) {
-        var produto = repository.getReferenceById(id);
+        var produto = repository.getById(id);
         return ResponseEntity.ok(new DadosDetalhamentoProduto(produto));
     }
 
@@ -43,14 +42,12 @@ public class ProdutoController {
     }
 
     @GetMapping
-    @Transactional
     public ResponseEntity listar() {
         var page = repository.findAll();
         return ResponseEntity.ok(page);
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public void excluir(@PathVariable Long id) {
         repository.deleteById(id);
     }
