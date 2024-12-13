@@ -28,33 +28,45 @@ public class VendaService {
     private ProdutoVendaRepository produtoVendaRepository;
 
     public Venda vender(List<QtdVenda> request) {
+
+        //Buscando todos os produtos vendidos pelo ID
         List<Produto> produtos = produtoRepository.findAllById(request.stream().map(QtdVenda::idVenda).toList());
+
+        //Criando uma venda
         Venda vendas = new Venda(0.00);
         vendaRepository.save(vendas);
 
+        //Criando a variavel do total da venda
         Double total = 0.0;
 
         for (int i = 0; i < produtos.size(); i++) {
+
             Produto produto = produtos.get(i);
 
+            //Encontrando a quantidade vendida para o produto atual
             Integer qtdVendida = request.stream().filter(
                             qtdVenda -> qtdVenda.idVenda().equals(produto.getId())).map(QtdVenda::quantidadeVendido)
                     .toList().get(0);
 
+            //Verificando se há estoque suficiente
             produto.temEstoque(qtdVendida);
 
+            //Calculando o valor total da venda
             total += qtdVendida.doubleValue() * produto.getValorProduto();
 
+            //Criando e salvando a venda
             ProdutoVenda produtoVenda = new ProdutoVenda();
             produtoVenda.setVenda(vendas);
             produtoVenda.setProduto(produto);
             produtoVenda.setQtdVendida(qtdVendida);
             produtoVendaRepository.save(produtoVenda);
 
+            //Atualizando o Estoque
             produto.setQtdDisponivelDoProduto(produto.getQtdDisponivelDoProduto() - qtdVendida);
             produtoRepository.save(produto);
         }
 
+        //Atualizando o valor total da venda
         vendas.setValorDaVenda(total);
         return vendaRepository.save(vendas);
     }

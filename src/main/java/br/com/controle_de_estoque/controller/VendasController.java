@@ -8,7 +8,6 @@ import br.com.controle_de_estoque.service.VendaService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -29,7 +28,8 @@ public class VendasController {
 
     @PutMapping("{idVenda}")
     public ResponseEntity atualizarVenda(@PathVariable Long id, @RequestBody List<VendaRequest> request) {
-        Venda vendaService.
+       Venda atualizarVenda = vendaService.atualizarVenda(id);
+
     }
 
 }
