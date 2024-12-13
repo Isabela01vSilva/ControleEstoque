@@ -21,12 +21,12 @@ public class ProdutoController {
         var produto = new Produto(dados);
         repository.save(produto);
 
-        var uri = uriBuilder.path("/{id}").buildAndExpand(produto.getId()).toUri();
+        var uri = uriBuilder.path("/{idVenda}").buildAndExpand(produto.getId()).toUri();
 
         return ResponseEntity.created(uri).body(new DadosDetalhamentoProduto(produto));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{idVenda}")
     public ResponseEntity buscarProdutoPorId(@PathVariable Long id) {
         var produto = repository.getById(id);
         return ResponseEntity.ok(new DadosDetalhamentoProduto(produto));
@@ -47,7 +47,7 @@ public class ProdutoController {
         return ResponseEntity.ok(page);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{idVenda}")
     public void excluir(@PathVariable Long id) {
         repository.deleteById(id);
     }
