@@ -7,6 +7,9 @@ import br.com.controle_de_estoque.domain.produtoVenda.ProdutoVendaRepository;
 import br.com.controle_de_estoque.domain.venda.QtdVenda;
 import br.com.controle_de_estoque.domain.venda.Venda;
 import br.com.controle_de_estoque.domain.venda.VendaRepository;
+import br.com.controle_de_estoque.service.dto.ProdutoVendaDTO;
+import br.com.controle_de_estoque.service.dto.ProdutosVendidosDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ public class VendaService {
     @Autowired
     private ProdutoVendaRepository produtoVendaRepository;
 
+    @Transactional
     public Venda vender(List<QtdVenda> request) {
 
         //Buscando todos os produtos vendidos pelo ID
@@ -71,6 +75,7 @@ public class VendaService {
         return vendaRepository.save(vendas);
     }
 
+    @Transactional
     public Venda atualizarVenda(Long id, List<QtdVenda> qtdVendido) {
 
         //Buscando a venda pelo ID
@@ -82,6 +87,19 @@ public class VendaService {
         //Iniciando o valor total da venda
         Double total = 0.0;
 
+        List<ProdutoVenda> produtosVendidos = produtoVendaRepository.findByVendaId(id);
+
+        //Devolvendo pro estoque
+        for (ProdutoVenda produtoVenda: produtosVendidos) {
+            Produto produto = produtoVenda.getProduto();
+            Integer qtdVendida = produtoVenda.getQtdVendida();
+            produto.setQtdDisponivelDoProduto(qtdVendida + produto.getQtdDisponivelDoProduto());
+            produtoRepository.save(produto);
+        }
+        
+        //Limpando a tabela ProdutoVendas
+        produtoVendaRepository.deleteByVendaId(id);
+
         for (int i = 0; i < produtos.size(); i++) {
 
             //Encontrando a quantidade vendida por Produto
@@ -90,12 +108,6 @@ public class VendaService {
                             qtdVenda -> qtdVenda.idVenda().equals(produto.getId())).map(QtdVenda::quantidadeVendido)
                     .toList().get(0);
 
-            //Devolvendo Produtos para o Estoque
-            produto.setQtdDisponivelDoProduto(produto.getQtdDisponivelDoProduto() + qtdVendida);
-            produtoRepository.save(produto);
-
-            //Limpando a tabela ProdutoVendas
-            produtoVendaRepository.deleteByVendaId(id);
 
             // Calculando o valor total da venda
             total += qtdVendida.doubleValue() * produto.getValorProduto();
@@ -117,5 +129,26 @@ public class VendaService {
         buscarVenda.setValorDaVenda(total);
         return vendaRepository.save(buscarVenda);
     }
+
+    public ProdutoVendaDTO buscarVendas(long id){
+       List<ProdutoVenda> produtosVendidos = produtoVendaRepository.findByVendaId(id);
+
+       if (produtosVendidos.isEmpty())throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+       return new ProdutoVendaDTO(
+               id,
+               produtosVendidos.get(0).getVenda().getValorDaVenda(),
+               produtosVendidos.stream().map(produtoVenda ->
+                       new ProdutosVendidosDTO(produtoVenda.getProduto().getId(),
+                               produtoVenda.getProduto().getNome(), produtoVenda.getQtdVendida(),
+                               produtoVenda.getProduto().getValorProduto()
+                       )
+               ).toList(),
+               produtosVendidos.stream().map(ProdutoVenda::getQtdVendida).reduce((acumulador, listElement) -> acumulador + listElement).get()
+       );
+
+    }
+
+
 
 }
